@@ -1,267 +1,386 @@
-function Calendar(parentId) {
-	this.parentElement = document.getElementById(parentId);
-	this.init();
-}
-Calendar.prototype = {
-	init: function() {
-		this.contains = document.createElement("div");
-		this.contains.onselectstart = function(){return false};   //让按钮点击时不会出现文字被选中的蓝色块
-		this.dateInput = document.createElement("input");
-		this.datePicker = document.createElement("div");
-		this.showDateBar = document.createElement("div");
-		this.dateBox = document.createElement("div");
-		this.icon = document.createElement("i");
-		this.contains.className = 'datepicker-container';
-		this.dateInput.className = 'date-input';
-		this.dateInput.readOnly = true;
-		var parent = this;
-		this.dateInput.onclick = function(event){
-			parent.onDateInputClick(event);            //点击日期框时显示日历                
-		};
-		this.contains.onblur = function(){
-			parent.datePicker.style.display = 'none';
-		}
-		this.datePicker.className = 'date-picker';
-		this.datePicker.style.display = 'none';
-		this.showDateBar.className = 'show-date';
-		this.dateBox.className = 'date-box';
-		this.icon.className = 'date-icon';
-		this.icon.innerHTML = '&#xe662;'; //iconfont
-		this.datePicker.appendChild(this.showDateBar);
-		this.datePicker.appendChild(this.dateBox);
-		this.contains.appendChild(this.dateInput);
-		this.contains.appendChild(this.icon);
-		this.contains.appendChild(this.datePicker);
-		this.parentElement.appendChild(this.contains);	
-	},
-	drawShowDateBar: function(parentElement){
-		var parent = this;
-		var nowDate = new Date();
-		parentElement.date = nowDate;
-		var nowYear = nowDate.getFullYear();
-		var nowMonth = nowDate.getMonth();
-		var nowDay = nowDate.getDate();
-		//showDateBar内容拼接
-		var contentStr ='<div class="year-input"><span>'+nowYear+'年</span><i class="select-year-btn">&#xe600;</i><ul class="year-select-box" style="display : none">';
-		for(var i=0;i<150;i++){
-			contentStr+='<li>'+(i+1900)+'年</li>';
-		}
-		contentStr+='</ul></div>'
-					+'<div class="month-input"><i class="prev-month">&#xe601;</i><select class="months-options">'
-		for(var i=0;i<12;i++){
-			contentStr+='<option>'+(i+1)+'月</option>';
-		}
-		contentStr+='</select><i class="next-month">&#xe602;</i></div>'
-					+'<div class="day-input"><i class="prev-day">&#xe601;</i><select class="days-options"></select>'
-					+'<i class="next-day">&#xe602;</i></div>'
-					+'<button class="today-btn">今天</button>'
-					+'<div class="days-title">';
-		var weekday = ['日', '一', '二', '三', '四', '五', '六'];
-		for (var i = 0; i < 7; i++) {
-	 		contentStr+='<span class="day-title">'+weekday[i]+'</span>';
-		}
-		contentStr+='</div>';
-		parentElement.innerHTML = contentStr;
-		this.changeShowDateBar(nowDate);   //插入到showTimeBar之后，初始化，传入的参数是现在的时间
-		var yearInput = parentElement.firstChild;
-		//年选择框点击显示和隐藏选择列表
-		yearInput.onclick = function(){     //target和this的区别  target是触发事件的元素，this是处理事件的元素  
-			var ul = this.lastChild;
-			ul.style.display==='none'||ul.style.display==='none'? ul.style.display='inline-block':ul.style.display='none';
-		};
-		//为年选择下拉框绑定点击事件
-		var yearSelectBox = yearInput.lastChild;
-		var yearLi = yearSelectBox.children;
-		for(var i=0;i<yearLi.length;i++){
-			yearLi[i].onclick = function(){
-				parent.showDateBar.date.setFullYear(this.innerText.slice(0,-1));
-				parent.changeShowDateBar(parent.showDateBar.date);   //时间改变之后都要重新调用，因为不同年，不同月，某个月的天数不全一样
-			};
-		}
-		//为month的前后按钮添加点击事件
-		var monthInput = yearInput.nextSibling;
-		monthInput.firstChild.onclick = function(){
-			var monthOptions = this.nextSibling;
-				if(monthOptions.selectedIndex>0){
-					parent.showDateBar.date.setMonth(--monthOptions.selectedIndex);
-				}else{
-					monthOptions.selectedIndex = 11;
-					parent.showDateBar.date.setFullYear(parent.showDateBar.date.getFullYear()-1);
-					parent.showDateBar.date.setMonth(11);
-				}
-			parent.changeShowDateBar(parent.showDateBar.date);
-		};
-		monthInput.lastChild.onclick = function(){
-			//console.log(parent.showDateBar.date.toLocaleDateString()+'click');
-			var monthOptions = this.previousSibling;
-			//var dayOptions = this.parentElement.nextSibling.firstChild.nextSibling;
-			if(monthOptions.selectedIndex<11){
-				parent.showDateBar.date.setMonth(++monthOptions.selectedIndex);
-			}else{
-				monthOptions.selectedIndex = 0;
-				parent.showDateBar.date.setFullYear(parent.showDateBar.date.getFullYear()+1);
-				parent.showDateBar.date.setMonth(0);
-			}
-			//console.log(parent.showDateBar.date.toLocaleDateString()+'click');
-			parent.changeShowDateBar(parent.showDateBar.date);
-			
-		}
-		monthInput.children[1].onchange = function(){
-			parent.showDateBar.date.setMonth(this.selectedIndex);
-			parent.changeShowDateBar(parent.showDateBar.date)
-		};
+;
+(function() {
+    "use strict";
 
-		//为day的前后按钮添加点击事件
-		var dayInput = monthInput.nextSibling;
-		dayInput.firstChild.onclick = function(){
-			var dayOptions = this.nextSibling;
-			//var monthOptions = this.parentElement.previousSibling.firstChild.nextSibling;
-			if(dayOptions.selectedIndex>0){
-				parent.showDateBar.date.setDate(dayOptions.selectedIndex--);
-				//parent.changeShowDateBar(parent.showDateBar.date);
-			}else{
-				parent.showDateBar.date.setMonth(parent.showDateBar.date.getMonth()-1);
-				//console.log(parent.showDateBar.date.toLocaleDateString()+'dayclick');;
-				parent.showDateBar.date.setDate(parent.getDaysOfMonth(parent.showDateBar.date));
-				//dayOptions.selectedIndex = parent.getDaysOfMonth(parent.showDateBar.date)-1;
-				//console.log(parent.showDateBar.date.toLocaleDateString()+'dayclick');;
-			}
-			parent.changeShowDateBar(parent.showDateBar.date);
-			
-		};
-		dayInput.lastChild.onclick = function(){
-			var dayOptions = this.previousSibling;
-			//console.log(dayOptions.length-1);
-			if(dayOptions.selectedIndex < dayOptions.length-1){
-				dayOptions.selectedIndex++;
-				//console.log(dayOptions.selectedIndex);
-				parent.showDateBar.date.setDate(dayOptions.selectedIndex+1);	
-			}else{
-				parent.showDateBar.date.setDate(1);
-				parent.showDateBar.date.setMonth(parent.showDateBar.date.getMonth()+1);	
-			}
-			parent.changeShowDateBar(parent.showDateBar.date);
-		};
-		dayInput.children[1].onchange = function(){
-			parent.showDateBar.date.setDate(this.selectedIndex+1);
-			parent.changeShowDateBar(parent.showDateBar.date)
-		};
-		//为今天按钮绑定点击事件
-		var todayBtn = dayInput.nextSibling;
-		todayBtn.onclick = function(){
-			parent.drawPicker(new Date());
-			parent.changeShowDateBar(new Date());
-		}	
-	},
-	changeShowDateBar : function(date){
-		//this.showDateBar.date = new Date(date);   //要将传入的date保存，因为下面调用的函数会改变date
-		//console.log(date.toLocaleDateString()+'changeShowDateBar');
-		var yearInput = this.showDateBar.firstChild;
-		var monthInput = yearInput.nextSibling;
-		var dayInput = monthInput.nextSibling;
-		yearInput.firstChild.innerText = date.getFullYear()+'年';
-		var monthsOptions = monthInput.firstChild.nextSibling;
-		monthsOptions.selectedIndex = date.getMonth();
-		var daysOptions = dayInput.firstChild.nextSibling;
-		var days = this.getDaysOfMonth(date);
-		var dayStr = '';
-		for(var i=1;i<=days;i++){
-			dayStr+='<option>'+i+'日</option>';
-		}
-		daysOptions.innerHTML = dayStr;
-	//	console.log(date.toLocaleDateString()+'changeShowDateBar');
-		daysOptions.selectedIndex = date.getDate()-1;
-		this.drawPicker(date);
-	},
-	//绘制日期表
-	drawPicker: function(primalDate) {
-		var date = new Date(primalDate);  //要新建一个对象，因为会改变date
-		var nowMonth = date.getMonth()+1;
-		var nowDate = date.getDate();
-		var spanContainer = [];
-		var dateBox = this.dateBox;
-		dateBox.innerHTML = '';
-		var time = date.getTime();
-		var days = this.getDaysOfMonth(date);  //计算出这个月的天数
-		date.setDate(1);                       //将date的日期设置为1号
-		var firstDay = date.getDay();          //知道这个月1号是星期几
-		for (var i = 0; i < firstDay; i++) {   //如果1号不是周日(一周的开头),则在1号之前要补全
-			var tempDate = new Date(date);
-			tempDate.setDate(i - firstDay + 1);
-			var span = document.createElement("span");
-			span.className = "unshow";
-			spanContainer.push({span : span, date : tempDate});
-		}
-		for (var i = 1; i <= days; i++) {       //1号到这个月最后1天
-			var span = document.createElement("span");
-			span.className = 'show';
-			spanContainer.push({span : span, date : new Date(date)});
-			date.setDate(i + 1);
-		}
-		for (var i = date.getDay(); i <= 6; i++) {  //在这个月最后一天后面补全
-			var span = document.createElement("span");
-			span.className = "unshow";
-			spanContainer.push({span : span, date : new Date(date)});
-			date.setDate(date.getDate()+1);
-		}
-		for(var i=0;i<spanContainer.length;i++){
-			var spanBox = spanContainer[i];
-			var span = spanBox.span;
-			span.year = spanBox.date.getFullYear();  //为每个span元素添加表示时间的属性
-			span.month = spanBox.date.getMonth() + 1;
-			span.date = spanBox.date.getDate();
-			span.innerText = spanBox.date.getDate();
-			if(span.date === nowDate&&span.month === nowMonth)  //如果这个span的日期为与传入的日期匹配，设置类名为select
-				span.className+=" select";
-			var parent = this;
-			span.onclick = function(){    //设置点击事件
-				var target = event.target;
-				var selected = target.parentElement.getElementsByClassName("select");
-				for(var i=0 ;i<selected.length;i++){
-					selected[i].className = selected[i].className.replace(" select","");
-				};
-				target.className+=" select";
-				//console.log(spanBox.date);   //这已经是闭包问题了
-				parent.changeDate(target.year, target.month, target.date); //陷阱 changeDate调用时spanContainer[i].date，i这个变量已经是出界了的
-				/*if(target.className.indexOf("unshow")!==-1){
-					parent.drawPicker(new Date(target.year, target.month-1, target.date)); //如果点击非本月的日期，则重绘日历表
-				}*/
-				parent.changeShowDateBar(new Date(target.year, target.month-1, target.date));	
-			};
-			dateBox.appendChild(span);  //将span添加到dateBox中
-		}
-		//console.log(primalDate.toLocaleDateString()+'drawPicker');
-		this.changeDate(primalDate.getFullYear(), primalDate.getMonth()+1, primalDate.getDate())
-		return;
+    var _extends = Object.assign ||
+        function(target) {
+            for (var i = 1; i < arguments.length; i++) {
+                var source = arguments[i];
+                for (var key in source) {
+                    if (Object.prototype.hasOwnProperty.call(source, key)) {
+                        target[key] = source[key];
+                    }
+                }
+            }
+            return target;
+        };
 
-	},
-	//计算一个月的天数
-	getDaysOfMonth: function(primalDate) {
-		var date = new Date(primalDate);  //要新建一个对象，因为会改变date
-		var month = date.getMonth();
-		var time = date.getTime();        //计算思路主要是month+1,相减除一天的毫秒数
-		var newTime = date.setMonth(month + 1);
-		return Math.ceil((newTime - time) / (24 * 60 * 60 * 1000));
-	},
-	//日期框点击时显示日历
-	onDateInputClick: function(event) {  
-		var target = event.target;
-		var value = target.value;
-		var datePicker = this.datePicker;
-		if(datePicker.style.display==='none'){   //这里必须要在js文件里将datePicker.style.display设置为none，如果是在css文件里设置为none,得到的display为""
-			datePicker.style.display = 'block';
-		}else{
-			datePicker.style.display = 'none';
-			return; 
-		}
-		if (!value) this.drawShowDateBar(this.showDateBar);  //绘制日历的显示栏 
-	},
-	changeDate : function(year, month, date){
-		this.dateInput.value = year+"-"+(month<10?("0"+month):month)+"-"+(date<10?("0"+date):date);
-	},
-	parseDateFormat: function(value) {
-	},
-	dateFormat: function() {
-	},
-}
-var calendar = new Calendar("root");
+    var _typeof =
+        typeof Symbol === 'function' && typeof Symbol.iterator === 'symbol' ? function(obj) {
+            return typeof obj;
+        } :
+        function(obj) {
+            return obj && typeof Symbol === 'function' && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+        }
+
+
+    var getSettings = function(opts) {
+        var defaults = {
+            targetElement: '',
+        };
+        return _extends({}, defaults, opts);
+    };
+
+    var Calendar = function Calendar(settings) {
+        this._settings = getSettings(settings);
+        this._init();
+    }
+
+    // var inputValue;
+    Calendar.prototype = {
+        constructor: Calendar,
+        _init: function() {
+            var _this = this;
+            var settings = this._settings;
+            this.container = document.createElement('div');
+            this.container.onselect = function() {
+                return false;
+            };
+            this.container.className = this.container.className ? this.container.className += ' container' : 'container';
+            this.dateInput = document.createElement('input');
+            this.dateInput.setAttribute('type', 'text');
+            this.dateInput.className = this.dateInput.className ? this.dateInput.className += ' date-input' : 'date-input';
+            //this.dateInput.readOnly = true;
+            this.datePicker = document.createElement('div');
+            this.datePicker.className = this.datePicker.className ? this.datePicker.className += ' date-picker' : 'date-picker';
+            this.dateBar = document.createElement('div');
+            this.dateBar.className = this.dateBar.className ? this.dateBar.className += ' date-bar' : 'date-bar';
+            this.dateBox = document.createElement('div');
+            this.dateBox.className = this.dateBox.className ? this.dateBox.className += ' date-box' : 'date-box';
+            this.icon = document.createElement('i');
+            this.icon.className = this.icon.className ? this.icon.className += ' date-icon' : 'date-icon';
+            this.icon.innerHTML = '';
+            this.dateInput.addEventListener('click', function(e) {
+                e = window.event || e;
+                _this.showCalendar(e);
+            });
+            this.container.onblur = function() {
+                    _this.datePicker.style.display = 'none';
+                }
+                // this.dateInput.addEventListener('onporpertychange', function(e) {
+                //     inputValue = this.value;
+                //     console.log('change');
+                //     console.log('onporpertychange:', inputValue);
+                // })
+            document.onkeydown = function(e) {
+                var e = e || window.event;
+                var keyCode = e.charCode || e.keyCode;
+                if (keyCode === 13) {
+                    _this.setInput();
+                }
+            }
+            this.datePicker.appendChild(this.dateBar);
+            this.datePicker.appendChild(this.dateBox);
+            this.container.appendChild(this.dateInput);
+            this.container.appendChild(this.icon);
+            this.container.appendChild(this.datePicker);
+            this._settings.targetElement.append(this.container);
+
+        },
+        toggleDateBar: function(ele) {
+            var _this = this;
+            var now = new Date();
+            ele.date = now;
+            var year = now.getFullYear(),
+                month = now.getMonth(),
+                day = now.getDate();
+            //var content = '<div class="year-input"><span>' + year + '年</span><i class="year-btn">&#xe600;</i><ul class="year-box" style="display:none;"></ul></div>';
+            var content = '<div class="year-input"><span>' + year + '年</span><i class="select-year-btn">&#xe600;</i><ul class="year-select-box" style="display : none">';
+            for (var i = 0; i < 150; i++) {
+                content += '<li>' + (i + 1900) + '年</li>';
+            }
+            content += '</ul></div>' +
+                '<div class="month-input"><i class="prev-month">&#xe601;</i><select class="months-options">'
+            for (var i = 0; i < 12; i++) {
+                content += '<option>' + (i + 1) + '月</option>';
+            }
+            content += '</select><i class="next-month">&#xe602;</i></div>' +
+                '<div class="day-input"><i class="prev-day">&#xe601;</i><select class="days-options"></select>' +
+                '<i class="next-day">&#xe602;</i></div>' +
+                '<button class="today-btn">今天</button>' +
+                '<div class="days-title">';
+            var weekday = ['日', '一', '二', '三', '四', '五', '六'];
+            for (var i = 0; i < 7; i++) {
+                content += '<span class="day-title">' + weekday[i] + '</span>';
+            }
+            content += '</div>';
+            ele.innerHTML = content;
+            this.changeDateBar(now);
+
+            // console.log('this.dateInput.value2:', this.dateInput.value);
+            // console.log('inputValue2:', inputValue);
+            var yearInput = ele.firstChild;
+            yearInput.addEventListener('click', function() {
+                var ul = this.lastChild;
+                ul.style.display === 'none' || ul.style.display === 'none' ? ul.style.display = 'inline-block' : ul.style.display = 'none';
+            });
+            var yearBox = yearInput.lastChild;
+            var yearLi = yearBox.children;
+            for (var i = 0, len = yearLi.length; i < len; i++) {
+                yearLi[i].onclick = function() {
+                    _this.dateBar.date.setFullYear(this.innerText.slice(0, -1));
+                    _this.changeDateBar(_this.dateBar.date);
+                    // _this.changeDate(inputValue);
+                };
+            }
+            var monthInput = yearInput.nextSibling;
+            monthInput.firstChild.onclick = function() {
+                var monthOptions = this.nextSibling;
+                if (monthOptions.selectedIndex > 0) {
+                    _this.dateBar.date.setMonth(--monthOptions.selectedIndex);
+                } else {
+                    monthOptions.selectedIndex = 11;
+                    _this.dateBar.date.setFullYear(_this.dateBar.date.getFullYear() - 1);
+                    _this.dateBar.date.setMonth(11);
+                }
+                _this.changeDateBar(_this.dateBar.date);
+                // _this.changeDate(inputValue);
+            };
+            monthInput.lastChild.onclick = function() {
+                var monthOptions = this.previousSibling;
+                if (monthOptions.selectedIndex < 11) {
+                    _this.dateBar.date.setMonth(++monthOptions.selectedIndex);
+                } else {
+                    monthOptions.selectedIndex = 0;
+                    _this.dateBar.date.setFullYear(_this.dateBar.date.getFullYear() + 1);
+                    _this.dateBar.date.setMonth(0);
+                }
+                _this.changeDateBar(_this.dateBar.date);
+                // _this.changeDate(inputValue);
+            }
+            monthInput.children[1].onchange = function() {
+                _this.dateBar.date.setMonth(this.selectedIndex);
+                _this.changeDateBar(_this.dateBar.date);
+                // _this.changeDate(inputValue);
+            };
+
+            var dayInput = monthInput.nextSibling;
+            dayInput.firstChild.onclick = function() {
+                var dayOptions = this.nextSibling;
+                if (dayOptions.selectedIndex > 0) {
+                    _this.dateBar.date.setDate(dayOptions.selectedIndex--);
+                } else {
+                    _this.dateBar.date.setMonth(_this.dateBar.date.getMonth() - 1);
+                    _this.dateBar.date.setDate(_this.getDayOfMonth(_this.dateBar.date));
+                }
+                _this.changeDateBar(_this.dateBar.date);
+                // _this.changeDate(inputValue);
+            };
+            dayInput.lastChild.onclick = function() {
+                var dayOptions = this.previousSibling;
+                if (dayOptions.selectedIndex < dayOptions.length - 1) {
+                    dayOptions.selectedIndex++;
+                    _this.dateBar.date.setDate(dayOptions.selectedIndex + 1);
+                } else {
+                    _this.dateBar.date.setDate(1);
+                    _this.dateBar.date.setMonth(_this.dateBar.date.getMonth() + 1);
+                }
+                _this.changeDateBar(_this.dateBar.date);
+                // _this.changeDate(inputValue);
+            };
+            dayInput.children[1].onchange = function() {
+                _this.dateBar.date.setDate(this.selectedIndex + 1);
+                _this.changeDateBar(_this.dateBar.date);
+                // _this.changeDate(inputValue);
+            };
+            var todayBtn = dayInput.nextSibling;
+            todayBtn.onclick = function() {
+                _this.drawPicker(new Date());
+                _this.changeDateBar(new Date());
+                // _this.changeDate(inputValue);
+            }
+        },
+        changeDate: function(value) {
+            //var value = this.dateInput.value;
+            var year = value.slice(0, 4),
+                month = value.slice(5, 7),
+                day = value.slice(9);
+            var dayContent = '';
+            month = parseInt(month, 10);
+            var days = new Date(year, month, 0).getDate();
+            for (var i = 1; i < days; i++) {
+                dayContent += '<option>' + i + '</option>';
+            }
+            dayOptions.innerHTML = dayContent;
+            dayOptions.selectedIndex = day - 1;
+            this.drawPicker2(value);
+        },
+        changeDateBar: function(date) {
+            var yearInput = this.dateBar.firstChild,
+                monthInput = yearInput.nextSibling,
+                dayInput = monthInput.nextSibling;
+            yearInput.firstChild.innerText = date.getFullYear() + '年';
+            var monthOptions = monthInput.firstChild.nextSibling;
+            monthOptions.selectedIndex = date.getMonth();
+            var dayOptions = dayInput.firstChild.nextSibling;
+            var days = this.getDaysOfMonth(date);
+            var dayContent = '';
+            for (var i = 1; i < days; i++) {
+                dayContent += '<option>' + i + '日</option>';
+            }
+            dayOptions.innerHTML = dayContent;
+            dayOptions.selectedIndex = date.getDate() - 1;
+            this.drawPicker(date);
+            // console.log(date)
+        },
+        getWeekByDay: function(val) {
+            var week = new Date(Date.parse(val.replace(/\-/g, "/")));
+            return week;
+        },
+        drawPicker2: function(val) {
+            var year = value.slice(0, 4),
+                month = value.slice(5, 7),
+                day = value.slice(9);
+            var spanArr = [];
+            var dateBox = this.dateBox;
+            dateBox.innerHTML = '';
+            month = parseInt(month, 10);
+            var days = new Date(year, month, 0).getDate();
+            var firstDay = new Date(year, month - 1, 1).getDay();
+            var week = getWeekByDay(val);
+            for (var i = 0; i < firstDay; i++) {
+                var span = document.createElement('span');
+                span.className = 'unknow';
+                spanArr.push({ span: span, date: 31 - i })
+            }
+            for (var i = 1; i <= days; i++) {
+                var span = document.createElement('span');
+                span.className = 'show';
+                spanArr.push({ span: span, date: i });
+            }
+            for (var i = week; i <= 6; i++) {
+                var span = document.createElement('span');
+                span.className = 'unshow';
+                spanArr.push({ span: span, date: i });
+            }
+            for (var i = 0; i < spanArr.length; i++) {
+                var spanBox = spanArr[i];
+                var span = spanBox.span;
+                span.year = year;
+                span.month = month;
+                span.date = spanBox.date;
+                span.innerText = spanBox.date;
+                if (span.date === day && span.month === month) {
+                    span.className += " select";
+                }
+                var _this = this;
+                span.onclick = function(e) {
+                    e = e || window.event;
+                    var target = e.target || e.secElement;
+                    var selected = target.parentElement.getElementsByClassName('select');
+                    for (var i = 0; i < selected.length; i++) {
+                        selected[i].className = selected[i].className.replace(" select", "");
+                    }
+                    target.className += " select";
+                    _this.changeDate(target.year, target.month, target.date);
+                    _this.changeDateBar(new Date(target.year, target.month - 1, target.date));
+                }
+                dateBox.appendChild(span);
+            }
+            this.changeDate(year, month, day)
+            return;
+        },
+        drawPicker: function(primalDate) {
+            var date = new Date(primalDate); //要新建一个对象，因为会改变date
+            var nowMonth = date.getMonth() + 1;
+            var nowDate = date.getDate();
+            var spanContainer = [];
+            var dateBox = this.dateBox;
+            dateBox.innerHTML = '';
+            var time = date.getTime();
+            var days = this.getDaysOfMonth(date); //计算出这个月的天数
+            date.setDate(1); //将date的日期设置为1号
+            var firstDay = date.getDay(); //知道这个月1号是星期几
+            for (var i = 0; i < firstDay; i++) { //如果1号不是周日(一周的开头),则在1号之前要补全
+                var tempDate = new Date(date);
+                tempDate.setDate(i - firstDay + 1);
+                var span = document.createElement("span");
+                span.className = "unshow";
+                spanContainer.push({ span: span, date: tempDate });
+            }
+            for (var i = 1; i <= days; i++) { //1号到这个月最后1天
+                var span = document.createElement("span");
+                span.className = 'show';
+                spanContainer.push({ span: span, date: new Date(date) });
+                date.setDate(i + 1);
+            }
+            for (var i = date.getDay(); i <= 6; i++) { //在这个月最后一天后面补全
+                var span = document.createElement("span");
+                span.className = "unshow";
+                spanContainer.push({ span: span, date: new Date(date) });
+                date.setDate(date.getDate() + 1);
+            }
+            for (var i = 0; i < spanContainer.length; i++) {
+                var spanBox = spanContainer[i];
+                var span = spanBox.span;
+                span.year = spanBox.date.getFullYear(); //为每个span元素添加表示时间的属性
+                span.month = spanBox.date.getMonth() + 1;
+                span.date = spanBox.date.getDate();
+                span.innerText = spanBox.date.getDate();
+                if (span.date === nowDate && span.month === nowMonth) //如果这个span的日期为与传入的日期匹配，设置类名为select
+                    span.className += " select";
+                var _this = this;
+                span.onclick = function() { //设置点击事件
+                    var target = event.target;
+                    var selected = target.parentElement.getElementsByClassName("select");
+                    for (var i = 0; i < selected.length; i++) {
+                        selected[i].className = selected[i].className.replace(" select", "");
+                    };
+                    target.className += " select";
+                    //console.log(spanBox.date);   //这已经是闭包问题了
+                    _this.changeDate(target.year, target.month, target.date); //陷阱 changeDate调用时spanContainer[i].date，i这个变量已经是出界了的
+                    /*if(target.className.indexOf("unshow")!==-1){
+                        parent.drawPicker(new Date(target.year, target.month-1, target.date)); //如果点击非本月的日期，则重绘日历表
+                    }*/
+                    _this.changeDateBar(new Date(target.year, target.month - 1, target.date));
+                };
+                dateBox.appendChild(span); //将span添加到dateBox中
+            }
+            //console.log(primalDate.toLocaleDateString()+'drawPicker');
+            this.changeDate(primalDate.getFullYear(), primalDate.getMonth() + 1, primalDate.getDate())
+            return;
+        },
+        getDaysOfMonth: function(primaryDate) {
+            var date = new Date(primaryDate),
+                month = date.getMonth(),
+                time = date.getTime(),
+                newTime = date.setMonth(month + 1);
+            return Math.ceil((newTime - time) / (24 * 60 * 60 * 1000));
+        },
+        showCalendar: function(e) {
+            var e = e || window.event;
+            var target = e.target || e.srcElement;
+            var value = target.value;
+            var datePicker = this.datePicker;
+            if (datePicker.style.display === 'none') {
+                datePicker.style.display = 'block';
+            } else {
+                datePicker.style.display = 'none';
+                return;
+            }
+            if (!value)
+                this.toggleDateBar(this.dateBar);
+        },
+        changeDate: function(year, month, date) {
+            this.dateInput.value = year + "-" + (month < 10 ? ("0" + month) : month) + "-" + (date < 10 ? ("0" + date) : date);
+        },
+        setInput: function() {
+            var value = this.dateInput.value;
+            var year = value.slice(0, 4),
+                month = value.slice(5, 7),
+                day = value.slice(9);
+            this.changeDateBar(new Date(year, month - 1, day));
+        }
+    };
+    window.Calendar = Calendar;
+})();
