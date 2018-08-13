@@ -200,21 +200,6 @@
                 // _this.changeDate(inputValue);
             }
         },
-        changeDate: function(value) {
-            //var value = this.dateInput.value;
-            var year = value.slice(0, 4),
-                month = value.slice(5, 7),
-                day = value.slice(9);
-            var dayContent = '';
-            month = parseInt(month, 10);
-            var days = new Date(year, month, 0).getDate();
-            for (var i = 1; i < days; i++) {
-                dayContent += '<option>' + i + '</option>';
-            }
-            dayOptions.innerHTML = dayContent;
-            dayOptions.selectedIndex = day - 1;
-            this.drawPicker2(value);
-        },
         changeDateBar: function(date) {
             var yearInput = this.dateBar.firstChild,
                 monthInput = yearInput.nextSibling,
@@ -236,59 +221,6 @@
         getWeekByDay: function(val) {
             var week = new Date(Date.parse(val.replace(/\-/g, "/")));
             return week;
-        },
-        drawPicker2: function(val) {
-            var year = value.slice(0, 4),
-                month = value.slice(5, 7),
-                day = value.slice(9);
-            var spanArr = [];
-            var dateBox = this.dateBox;
-            dateBox.innerHTML = '';
-            month = parseInt(month, 10);
-            var days = new Date(year, month, 0).getDate();
-            var firstDay = new Date(year, month - 1, 1).getDay();
-            var week = getWeekByDay(val);
-            for (var i = 0; i < firstDay; i++) {
-                var span = document.createElement('span');
-                span.className = 'unknow';
-                spanArr.push({ span: span, date: 31 - i })
-            }
-            for (var i = 1; i <= days; i++) {
-                var span = document.createElement('span');
-                span.className = 'show';
-                spanArr.push({ span: span, date: i });
-            }
-            for (var i = week; i <= 6; i++) {
-                var span = document.createElement('span');
-                span.className = 'unshow';
-                spanArr.push({ span: span, date: i });
-            }
-            for (var i = 0; i < spanArr.length; i++) {
-                var spanBox = spanArr[i];
-                var span = spanBox.span;
-                span.year = year;
-                span.month = month;
-                span.date = spanBox.date;
-                span.innerText = spanBox.date;
-                if (span.date === day && span.month === month) {
-                    span.className += " select";
-                }
-                var _this = this;
-                span.onclick = function(e) {
-                    e = e || window.event;
-                    var target = e.target || e.secElement;
-                    var selected = target.parentElement.getElementsByClassName('select');
-                    for (var i = 0; i < selected.length; i++) {
-                        selected[i].className = selected[i].className.replace(" select", "");
-                    }
-                    target.className += " select";
-                    _this.changeDate(target.year, target.month, target.date);
-                    _this.changeDateBar(new Date(target.year, target.month - 1, target.date));
-                }
-                dateBox.appendChild(span);
-            }
-            this.changeDate(year, month, day)
-            return;
         },
         drawPicker: function(primalDate) {
             var date = new Date(primalDate); //要新建一个对象，因为会改变date
